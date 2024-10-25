@@ -1,9 +1,17 @@
+from typing import Annotated
+
 import pandas as pd
+from fastapi import Depends
 from fastapi import FastAPI
+from fastapi import File
+from fastapi import HTTPException
 from fastapi import UploadFile
 from sqlmodel import create_engine
 from sqlmodel import Session
 from sqlmodel import SQLModel
+
+from .db_operations import create_uploaded_data
+from .db_operations import create_uploaded_file
 
 engine = create_engine(
     'sqlite:///publicisgroupe.db',
@@ -46,5 +54,15 @@ def on_startup():
 
 
 @app.post("/upload")
-async def upload():
-    return {'message': 'success'}
+async def upload(
+    session: Annotated[Session, Depends(get_session)],
+    file: UploadFile = File(...)
+):
+    try:
+        df = read_file(file)
+        validate_dataframe(df)
+        uploaded_file = create_uploaded_file(file.filename, session)
+        create_uploaded_data(df, uploaded_file.id, session)
+        return {'message': 'File uploaded and data saved successfully'}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Error processing file: {e}')
