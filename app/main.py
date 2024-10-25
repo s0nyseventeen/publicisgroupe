@@ -13,6 +13,14 @@ def read_file(file: UploadFile) -> pd.DataFrame:
     raise ValueError('Unsupported file format')
 
 
+def validate_dataframe(df: pd.DataFrame):
+    required_columns = {
+        'Advertiser', 'Brand', 'Start', 'End', 'Format', 'Platform', 'Impr'
+    }
+    if required_columns != set(df.columns):
+        raise ValueError(f'Missing required_columns. {required_columns=}')
+
+
 @app.post("/upload")
 async def upload():
     return {'message': 'success'}
