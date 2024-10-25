@@ -10,8 +10,8 @@ from sqlmodel import create_engine
 from sqlmodel import Session
 from sqlmodel import SQLModel
 
-from .models import UploadedData
-from .models import UploadedFile
+from .db_operations import create_uploaded_data
+from .db_operations import create_uploaded_file
 
 engine = create_engine(
     'sqlite:///publicisgroupe.db',
@@ -60,25 +60,8 @@ async def upload(
     try:
         df = read_file(file)
         validate_dataframe(df)
-
-        uploaded_file = UploadedFile(name=file.filename)
-        session.add(uploaded_file)
-        session.commit()
-        session.refresh(uploaded_file)
-
-        for _, row in df.iterrows():
-            uploaded_data = UploadedData(
-                uploaded_file_id=uploaded_file.id,
-                advertiser=row['Advertiser'],
-                brand=row['Brand'],
-                start=row['Start'],
-                end=row['End'],
-                format=row['Format'],
-                platform=row['Platform'],
-                impr=row['Impr']
-            )
-            session.add(uploaded_data)
-        session.commit()
+        uploaded_file = create_uploaded_file(file.filename, session)
+        create_uploaded_data(df, uploaded_file.id, session)
         return {'message': 'File uploaded and data saved successfully'}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f'Error processing file: {e}')
