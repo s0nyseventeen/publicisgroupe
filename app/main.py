@@ -48,6 +48,13 @@ def validate_dataframe(df: pd.DataFrame):
         raise ValueError(f'Missing required_columns. {required_columns=}')
 
 
+def calculate_sum_by_year(df: pd.DataFrame) -> list[dict[str, int]]:
+    df['Start'] = pd.to_datetime(df['Start'])
+    df['Year'] = df['Start'].dt.year
+    sum_by_year = df.groupby('Year')['Impr'].sum().reset_index()
+    return sum_by_year.to_dict(orient='records')
+
+
 @app.on_event('startup')
 def on_startup():
     create_db_and_tables()
@@ -63,6 +70,6 @@ async def upload(
         validate_dataframe(df)
         uploaded_file = create_uploaded_file(file.filename, session)
         create_uploaded_data(df, uploaded_file.id, session)
-        return {'message': 'File uploaded and data saved successfully'}
+        return {'message': calculate_sum_by_year(df)}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f'Error processing file: {e}')

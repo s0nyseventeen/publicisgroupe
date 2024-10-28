@@ -9,6 +9,7 @@ from sqlmodel import Session
 
 from .conftest import engine
 from app.main import app
+from app.main import calculate_sum_by_year
 from app.main import get_session
 from app.main import read_file
 from app.main import validate_dataframe
@@ -113,6 +114,16 @@ def test_validate_dataframe_success():
     validate_dataframe(pd.DataFrame(VALID_DATA))
 
 
+def test_calculate_sum_by_year():
+    data = {
+        'Start': ['2024-01-01', '2024-02-01', '2025-03-01'],
+        'Impr': [100, 200, 150]
+    }
+    result = calculate_sum_by_year(pd.DataFrame(data))
+    expected = [{'Year': 2024, 'Impr': 300}, {'Year': 2025, 'Impr': 150}]
+    assert result == expected
+
+
 def test_upload_csv_success(tmp_path, setup_test_db, client):
     df = pd.DataFrame(VALID_DATA)
     test_file_csv = tmp_path / 'test_file.csv'
@@ -120,7 +131,7 @@ def test_upload_csv_success(tmp_path, setup_test_db, client):
 
     resp = upload_file(client, test_file_csv, 'text/csv')
     assert resp.status_code == 200
-    assert resp.json()['message'] == 'File uploaded and data saved successfully'
+    assert resp.json()['message'] == [{'Impr': 1000.0, 'Year': 2024}]
 
 
 def test_upload_invalid_file_format_exception(tmp_path, setup_test_db, client):
