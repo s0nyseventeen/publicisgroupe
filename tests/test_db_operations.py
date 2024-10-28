@@ -1,3 +1,5 @@
+from datetime import date
+
 import pandas as pd
 from pytest import fixture
 from pytest import raises
@@ -7,6 +9,7 @@ from sqlmodel import Session
 from .conftest import engine
 from app.db_operations import create_uploaded_data
 from app.db_operations import create_uploaded_file
+from app.db_operations import validate_date
 from app.models import UploadedData
 
 
@@ -40,6 +43,18 @@ def test_create_uploaded_data_invalid_dates_exception(session):
     with raises(ValueError, match='Error processing row') as exc:
         create_uploaded_data(df, uploaded_file_id, session)
     assert 'invalid-date' in str(exc.value)
+
+
+def test_validate_date_success():
+    assert validate_date('28-10-2024', idx=0, column='Start') == date(2024, 10, 28)
+
+
+def test_validate_date_exception():
+    with raises(
+        ValueError,
+        match="Invalid date format at index idx=0, column='End', value=44207"
+    ):
+        validate_date(44207, idx=0, column='End')
 
 
 def test_create_uploaded_data(session):
