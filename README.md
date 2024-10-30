@@ -1,6 +1,6 @@
 # publicisgroupe
 
-Written on Python 3.12.7
+Written on Python 3.11.9
 
 ### Install dependencies
 
