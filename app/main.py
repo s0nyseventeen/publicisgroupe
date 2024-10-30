@@ -3,7 +3,6 @@ from typing import Annotated
 import pandas as pd
 from fastapi import Depends
 from fastapi import FastAPI
-from fastapi import File
 from fastapi import HTTPException
 from fastapi import UploadFile
 from sqlmodel import create_engine
@@ -62,8 +61,7 @@ def on_startup():
 
 @app.post("/upload")
 async def upload(
-    session: Annotated[Session, Depends(get_session)],
-    file: UploadFile = File(...)
+    session: Annotated[Session, Depends(get_session)], file: UploadFile
 ):
     try:
         df = read_file(file)
